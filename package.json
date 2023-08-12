@@ -1,0 +1,53 @@
+{
+  "name": "Lunatic",
+  "author": "nyrikiri",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-watchface"
+  ],
+  "private": true,
+  "dependencies": {
+    "pebble-clay": "^1.0.4"
+  },
+  "pebble": {
+    "capabilities": [
+      "configurable"
+    ],
+    "displayName": "Lunatic",
+    "uuid": "a90f4a52-3dd6-46c2-8257-984847e6acd1",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "basalt",
+      "chalk"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [
+      "lsleep",
+      "lwake",
+      "uwake",
+      "noautism"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "raw",
+          "name": "AWAKE",
+          "file": "images/awake.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "EEPY",
+          "file": "images/eepy.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "REST",
+          "file": "images/rest.png"
+        }
+      ]
+    }
+  }
+}
