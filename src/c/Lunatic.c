@@ -12,10 +12,29 @@ static GBitmapSequence *s_sequence = NULL;
 // For changing animations depending on current hour
 static BitmapLayer *s_eepy_layer;
 static GBitmap *s_eepy_eyes;
-// Sweet dreams
-static BitmapLayer *s_rest_layer;
-static GBitmap *s_rest_bitmap;
 
+// For talking
+static TextLayer *s_talk_layer;
+char ldict[20][70] = {"And you call yourself lonely?",
+                      "Elder sister knows the best, of course.",
+                      "Wanna come at my birthday?",
+                      "Wanna fly together somewhere?",
+                      "It's cold on the moon.",
+                      "There was pony-net on the moon, I've been reading a lot.",
+                      "My sister bullies me!",
+                      "An ocean of tears on dark side of the moon.",
+                      "It's so fresh at nights, I like to go out at this time.",
+                      "Write me a letter! 'Dear Princess Luna...'",
+                      "The world will shudder to know my greatness.",
+                      "Royal guards are boring.",
+                      "I saw a plushie of myself. Been thinking a lot about it.",
+                      "I bought a plushie of myself to sleep with.",
+                      "Fan shipping makes me sad.",
+                      "I am the oldest youngest sister in Equestria.",
+                      "Celestia, why are you so happy?",
+                      "Lunar Republic is the future of Equestria.",
+                      "Make a wish upon a star!",
+                      "Bow to your princess!"};
 
 // Clay stuff goes right here
 
@@ -82,6 +101,8 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) 
 
 static void load_sequence();
 
+
+
 static void update_time() {
 
   // Get a tm structure
@@ -99,6 +120,8 @@ static void update_time() {
   strftime(s_buffer2, sizeof(s_buffer2), "%A, %e.%m", tick_time);
   // Display this time from buffer on the TextLayer
   text_layer_set_text(s_time_layer, s_buffer);
+  layer_set_hidden(text_layer_get_layer(s_time_layer), false);
+  layer_set_hidden(text_layer_get_layer(s_talk_layer), true);
   // Display date
   text_layer_set_text(s_text_layer, s_buffer2);
 
@@ -122,22 +145,18 @@ if(settings.noautism == 0)
 
         if (current_hour == settings.uwake) // (You)'re going to sleep
         {
-          layer_set_hidden(bitmap_layer_get_layer(s_rest_layer), false);
+          text_layer_set_text(s_text_layer, "Sweet dreams.");
         } else
-        layer_set_hidden(bitmap_layer_get_layer(s_rest_layer), true);
+        text_layer_set_text(s_text_layer, s_buffer2);
 
     } else if(settings.noautism == 1)
       {
         layer_set_hidden(bitmap_layer_get_layer(s_eepy_layer), true);
-        layer_set_hidden(bitmap_layer_get_layer(s_rest_layer), true);
+
       }
 }
 
-static void accel_tap_handler(AccelAxisType axis, int32_t direction)
-{
-  // Hide her "rest message" by shaking your Pebble
-  layer_set_hidden(bitmap_layer_get_layer(s_rest_layer), true);
-}
+
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
@@ -157,6 +176,19 @@ static void timer_handler(void *context)
     app_timer_register(next_delay, timer_handler, NULL);
 
   } else load_sequence();
+
+}
+
+static void accel_tap_handler(AccelAxisType axis, int32_t direction)
+{
+
+  // Display something interesting here
+  if(settings.noautism == 0)
+    {
+      layer_set_hidden(text_layer_get_layer(s_talk_layer), false);
+      text_layer_set_text(s_talk_layer, ldict[rand()%20]);
+      layer_set_hidden(text_layer_get_layer(s_time_layer), true);
+    }
 
 }
 
@@ -195,8 +227,9 @@ static void prv_window_load(Window *window) {
   load_sequence();
 
   // Create the TextLayers for time and date with specific bounds
-  s_time_layer = text_layer_create(GRect(1, PBL_IF_ROUND_ELSE(45, 18), (bounds.size.w), 62));
-  s_text_layer = text_layer_create(GRect(0, 0, (bounds.size.w), 30));
+  s_time_layer = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(45, 18), (bounds.size.w), 62));
+  s_talk_layer = text_layer_create(GRect(0, 17, (bounds.size.w), 123));
+  s_text_layer = text_layer_create(GRect(0, -5, (bounds.size.w), 30));
 
   // Settings for the time layer
   text_layer_set_background_color(s_time_layer, GColorClear);
@@ -205,15 +238,22 @@ static void prv_window_load(Window *window) {
   text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
+  // Settings for talk layer
+  text_layer_set_background_color(s_talk_layer, GColorClear);
+  text_layer_set_text_color(s_talk_layer, GColorWhite);
+  text_layer_set_font(s_talk_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_text_alignment(s_talk_layer, GTextAlignmentCenter);
+
   // Same for date layer
   text_layer_set_background_color(s_text_layer, GColorClear);
   text_layer_set_text_color(s_text_layer, GColorWhite);
-  text_layer_set_font(s_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
+  text_layer_set_font(s_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text_alignment(s_text_layer, GTextAlignmentCenter);
 
   // Add everything as a child layers to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_text_layer));
+  layer_add_child(window_layer, text_layer_get_layer(s_talk_layer));
 
   // Things for eepy
   s_eepy_eyes = gbitmap_create_with_resource(RESOURCE_ID_EEPY);
@@ -221,12 +261,6 @@ static void prv_window_load(Window *window) {
   bitmap_layer_set_bitmap(s_eepy_layer, s_eepy_eyes);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_eepy_layer));
 
-  // Things for rest message
-  s_rest_bitmap = gbitmap_create_with_resource(RESOURCE_ID_REST);
-  s_rest_layer = bitmap_layer_create(GRect(16, 30, 116, 47));
-  bitmap_layer_set_bitmap(s_rest_layer, s_rest_bitmap);
-  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_rest_layer));
-  bitmap_layer_set_compositing_mode(s_rest_layer, GCompOpSet);
 
   prv_update_display();
 }
@@ -237,6 +271,7 @@ static void prv_window_unload(Window *window) {
     // Destroy TextLayers
     text_layer_destroy(s_time_layer);
     text_layer_destroy(s_text_layer);
+    text_layer_destroy(s_talk_layer);
 
     // Destroy GBitmap
     gbitmap_destroy(s_bitmap);
@@ -249,9 +284,6 @@ static void prv_window_unload(Window *window) {
     bitmap_layer_destroy(s_eepy_layer);
     gbitmap_destroy(s_eepy_eyes);
 
-    // Destroy rest things
-    bitmap_layer_destroy(s_rest_layer);
-    gbitmap_destroy(s_rest_bitmap);
 }
 
 static void prv_init(void) {
