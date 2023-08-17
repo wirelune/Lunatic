@@ -1,7 +1,7 @@
 {
   "name": "Lunatic",
   "author": "nyrikiri",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "keywords": [
     "pebble-watchface"
   ],
@@ -28,10 +28,17 @@
       "lsleep",
       "lwake",
       "uwake",
-      "noautism"
+      "noautism",
+      "noquotes"
     ],
     "resources": {
       "media": [
+        {
+          "menuIcon": true,
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/menuicon.png"
+        },
         {
           "type": "raw",
           "name": "AWAKE",
@@ -41,11 +48,6 @@
           "type": "bitmap",
           "name": "EEPY",
           "file": "images/eepy.png"
-        },
-        {
-          "type": "bitmap",
-          "name": "REST",
-          "file": "images/rest.png"
         }
       ]
     }
