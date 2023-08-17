@@ -160,7 +160,10 @@ if(settings.noautism == 0)
 
         if (current_hour == settings.uwake) // (You)'re going to sleep
         {
-          text_layer_set_text(s_text_layer, "Sweet dreams.");
+          if(sleepy == false)
+          {
+            text_layer_set_text(s_text_layer, "Sweet dreams.");
+          }
         } else
         text_layer_set_text(s_text_layer, s_buffer2);
 
