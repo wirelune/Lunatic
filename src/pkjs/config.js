@@ -47,16 +47,33 @@ module.exports = [
 {
   "type": "text",
   "defaultValue": "Your Princess wakes up on evening and goes to bed at morning. It's just the way I designed this watchface, so please don't break it."
+}
+]
 },
+{
+  "type": "section",
+  "items": [
+    {
+      "type": "heading",
+      "defaultValue": "Other settings"
+    },
 {
   "type": "toggle",
   "messageKey": "noautism",
   "label": "Disable all interactivity",
   "defaultValue": false
+},
+{
+  "type": "toggle",
+  "messageKey": "noquotes",
+  "label": 'Disable her "speech"',
+  "defaultValue": false
 }
+]
+},
 
-    ]
-  },
+
+
   {
     "type": "submit",
     "defaultValue": "Save Settings"

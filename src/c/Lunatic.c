@@ -14,6 +14,7 @@ static BitmapLayer *s_eepy_layer;
 static GBitmap *s_eepy_eyes;
 
 // For talking
+bool sleepy;
 static TextLayer *s_talk_layer;
 char ldict[20][70] = {"And you call yourself lonely?",
                       "Elder sister knows the best, of course.",
@@ -46,6 +47,7 @@ static void prv_default_settings() {
   settings.lwake = 8;
   settings.uwake = 23;
   settings.noautism = 0;
+  settings.noquotes = 0;
 }
 
 // Read settings from persistent storage
@@ -92,6 +94,11 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) 
 
     settings.noautism = t_test3->value->uint8;
   }
+  Tuple *t_test4 = dict_find(iter, MESSAGE_KEY_noquotes);
+  if (t_test4) {
+
+    settings.noquotes = t_test4->value->uint8;
+  }
 
   // Save the new settings to persistent storage
   prv_save_settings();
@@ -101,7 +108,8 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) 
 
 static void load_sequence();
 
-
+// Buffer for time
+static char s_buffer[8];
 
 static void update_time() {
 
@@ -109,14 +117,18 @@ static void update_time() {
   time_t temp = time(NULL);
   struct tm *tick_time = localtime(&temp);
 
-  // Write the current hours and minutes into a buffer
-  static char s_buffer[8];
+
   // Another buffer for date
   static char s_buffer2[20];
 
   // Format the time value
   strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
                                           "%H:%M" : "%I:%M", tick_time);
+  // Restore settings for date here
+  text_layer_set_text_alignment(s_text_layer, GTextAlignmentCenter);
+  text_layer_set_font(s_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+
+  // Format the date value
   strftime(s_buffer2, sizeof(s_buffer2), "%A, %e.%m", tick_time);
   // Display this time from buffer on the TextLayer
   text_layer_set_text(s_time_layer, s_buffer);
@@ -134,12 +146,15 @@ if(settings.noautism == 0)
     // Check time and do things
     if (current_hour >= settings.lsleep) // Princess Luna wakes up!
     {
+      sleepy = false;
       layer_set_hidden(bitmap_layer_get_layer(s_eepy_layer), true);
     } else if (current_hour < settings.lwake) // She wakes up here too!
     {
+      sleepy = false;
       layer_set_hidden(bitmap_layer_get_layer(s_eepy_layer), true);
     } else if (current_hour >= settings.lwake) // She goes to sleep right here
       {
+        sleepy = true;
         layer_set_hidden(bitmap_layer_get_layer(s_eepy_layer), false);
       }
 
@@ -185,9 +200,18 @@ static void accel_tap_handler(AccelAxisType axis, int32_t direction)
   // Display something interesting here
   if(settings.noautism == 0)
     {
-      layer_set_hidden(text_layer_get_layer(s_talk_layer), false);
-      text_layer_set_text(s_talk_layer, ldict[rand()%20]);
-      layer_set_hidden(text_layer_get_layer(s_time_layer), true);
+      if(settings.noquotes == 0)
+      {
+        if(sleepy == false)
+        {
+            text_layer_set_font(s_text_layer, fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK));
+            text_layer_set_text(s_text_layer, s_buffer);
+            text_layer_set_text_alignment(s_text_layer, GTextAlignmentLeft);
+            layer_set_hidden(text_layer_get_layer(s_talk_layer), false);
+            text_layer_set_text(s_talk_layer, ldict[rand()%20]);
+            layer_set_hidden(text_layer_get_layer(s_time_layer), true);
+        }
+      }
     }
 
 }
@@ -224,12 +248,12 @@ static void prv_window_load(Window *window) {
   s_bitmap_layer = bitmap_layer_create(bounds);
   layer_add_child(window_layer, bitmap_layer_get_layer(s_bitmap_layer));
 
-  load_sequence();
+
 
   // Create the TextLayers for time and date with specific bounds
   s_time_layer = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(45, 18), (bounds.size.w), 62));
   s_talk_layer = text_layer_create(GRect(0, 17, (bounds.size.w), 123));
-  s_text_layer = text_layer_create(GRect(0, -5, (bounds.size.w), 30));
+  s_text_layer = text_layer_create(GRect(0, -8, (bounds.size.w), 30));
 
   // Settings for the time layer
   text_layer_set_background_color(s_time_layer, GColorClear);
@@ -260,7 +284,7 @@ static void prv_window_load(Window *window) {
   s_eepy_layer = bitmap_layer_create(GRect(0, 70, 144, 98));
   bitmap_layer_set_bitmap(s_eepy_layer, s_eepy_eyes);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_eepy_layer));
-
+load_sequence();
 
   prv_update_display();
 }

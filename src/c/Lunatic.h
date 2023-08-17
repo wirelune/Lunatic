@@ -9,7 +9,9 @@ typedef struct ClaySettings {
   int lwake;
   int uwake;
   int noautism;
+  int noquotes;
 } __attribute__((__packed__)) ClaySettings;
+
 
 static void prv_default_settings();
 static void prv_load_settings();
